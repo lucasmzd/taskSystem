@@ -1,10 +1,7 @@
 {
   "compilerOptions": {
-    /* Directorios */
     "rootDir": "./src",
     "outDir": "./dist",
-
-    /* Configuración de entorno */
     "module": "commonjs",
     "target": "ES2020",
     "lib": ["ES2020"],
@@ -12,18 +9,14 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-
-    /* Opciones de salida */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "sourceMap": true,
-
-    /* Reglas de chequeo estricto */
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
-
-    /* Otras configuraciones */
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
