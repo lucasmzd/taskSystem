@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { fetchTasks, fetchTaskById, createTask, updateTask, deleteTask } from "../services/tasks";
+import { fetchTasks, fetchTaskById, createTask } from "../services/tasks";
 import TaskForm from "../components/taskForm";
+import TaskCard from "../components/taskCard";
 
 export default function Home() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+
   const loadTasks = async () => {
     setLoading(true);
     const data = await fetchTasks();
@@ -22,16 +24,6 @@ export default function Home() {
     setTasks([...tasks, newTask]);
   };
 
-  const handleUpdate = async (id: string, task: any) => {
-    const updated = await updateTask(id, task);
-    setTasks(tasks.map((t) => (t.id === id ? updated : t)));
-  };
-
-  const handleDelete = async (id: string) => {
-    await deleteTask(id);
-    setTasks(tasks.filter((t) => t.id !== id));
-  };
-
   const handleDetails = async (id: string) => {
     const task = await fetchTaskById(id);
     setSelectedTask(task);
@@ -43,34 +35,9 @@ export default function Home() {
     <div>
       <h1>Task List</h1>
       <TaskForm onSubmit={handleCreate} />
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Estimate</th>
-            <th>Created At</th>
-            <th>Details</th>
-          </tr>
-        </thead>
-        <tbody>
-          {tasks.map((task) => (
-            <tr key={task.id}>
-              <td>{task.id}</td>
-              <td>{task.title}</td>
-              <td>{task.status}</td>
-              <td>{task.priority || "-"}</td>
-              <td>{task.estimate ?? "-"}</td>
-              <td>{new Date(task.createdAt).toLocaleString()}</td>
-              <td>
-                <button onClick={() => handleDetails(task.id)}>Details</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {tasks.map((task) => (
+        <TaskCard key={task.id} task={task} onDetails={handleDetails} />
+      ))}
       {selectedTask && (
         <div>
           <h2>Task Details</h2>
