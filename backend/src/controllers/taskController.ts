@@ -5,8 +5,15 @@ import { Task } from "../entities/Task";
 const taskRepo = AppDataSource.getRepository(Task);
 
 export const getTasks = async (_req: Request, res: Response) => {
-  const tasks = await taskRepo.find({ relations: ["subtasks", "parentTask"] });
-  res.json(tasks);
+  try {
+    const tasks = await taskRepo.find({
+      select: ["id", "title", "status", "priority", "estimate", "createdAt"],
+      order: { createdAt: "DESC" },
+    });
+    res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching tasks", error });
+  }
 };
 
 export const getTaskById = async (req: Request, res: Response) => {
