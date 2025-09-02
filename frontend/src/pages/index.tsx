@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { fetchTasks, createTask, updateTask, deleteTask } from "../services/tasks";
-import TaskCard from "../components/taskCard";
+import { fetchTasks, fetchTaskById, createTask, updateTask, deleteTask } from "../services/tasks";
 import TaskForm from "../components/taskForm";
 
 export default function Home() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [selectedTask, setSelectedTask] = useState<any>(null);
   const loadTasks = async () => {
     setLoading(true);
     const data = await fetchTasks();
@@ -33,20 +32,57 @@ export default function Home() {
     setTasks(tasks.filter((t) => t.id !== id));
   };
 
+  const handleDetails = async (id: string) => {
+    const task = await fetchTaskById(id);
+    setSelectedTask(task);
+  };
+
   if (loading) return <p>Loading tasks...</p>;
 
   return (
     <div>
       <h1>Task List</h1>
       <TaskForm onSubmit={handleCreate} />
-      {tasks.map((task) => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          onUpdate={handleUpdate}
-          onDelete={handleDelete}
-        />
-      ))}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Estimate</th>
+            <th>Created At</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task) => (
+            <tr key={task.id}>
+              <td>{task.id}</td>
+              <td>{task.title}</td>
+              <td>{task.status}</td>
+              <td>{task.priority || "-"}</td>
+              <td>{task.estimate ?? "-"}</td>
+              <td>{new Date(task.createdAt).toLocaleString()}</td>
+              <td>
+                <button onClick={() => handleDetails(task.id)}>Details</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {selectedTask && (
+        <div>
+          <h2>Task Details</h2>
+          <p><strong>Title:</strong> {selectedTask.title}</p>
+          <p><strong>Status:</strong> {selectedTask.status}</p>
+          <p><strong>Priority:</strong> {selectedTask.priority || "-"}</p>
+          <p><strong>Estimate:</strong> {selectedTask.estimate ?? "-"}</p>
+          <p><strong>Description:</strong> {selectedTask.description || "-"}</p>
+          <p><strong>Created At:</strong> {new Date(selectedTask.createdAt).toLocaleString()}</p>
+          <p><strong>Updated At:</strong> {new Date(selectedTask.updatedAt).toLocaleString()}</p>
+        </div>
+      )}
     </div>
   );
 }
