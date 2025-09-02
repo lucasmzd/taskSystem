@@ -31,11 +31,11 @@ export class Task {
   @Column({ type: "float", nullable: true })
   estimate?: number;
 
-  @ManyToOne(() => Task, (task) => task.subtasks, { nullable: true })
+  @ManyToOne(() => Task, (task) => task.subtasks, { nullable: true, onDelete: "CASCADE" })
   parentTask?: Task;
 
   @OneToMany(() => Task, (task) => task.parentTask, { cascade: true })
-  subtasks: Task[] = [];
+  subtasks!: Task[];
 
   @CreateDateColumn()
   createdAt!: Date;
