@@ -1,5 +1,8 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany, ManyToOne } from "typeorm";
 
+export type Priority = "Low" | "Medium" | "High" | "Urgent";
+export type Status = "Backlog" | "Unstarted" | "Started" | "Completed" | "Canceled";
+
 @Entity()
 export class Task {
   @PrimaryGeneratedColumn("uuid")
@@ -11,11 +14,19 @@ export class Task {
   @Column({ nullable: true })
   description?: string;
 
-  @Column({ nullable: true })
-  priority?: "Low" | "Medium" | "High" | "Urgent";
+  @Column({
+    type: "enum",
+    enum: ["Low", "Medium", "High", "Urgent"],
+    nullable: true,
+  })
+  priority?: Priority;
 
-  @Column({ default: "Backlog" })
-  status!: "Backlog" | "Unstarted" | "Started" | "Completed" | "Canceled";
+  @Column({
+    type: "enum",
+    enum: ["Backlog", "Unstarted", "Started", "Completed", "Canceled"],
+    default: "Backlog",
+  })
+  status!: Status;
 
   @Column({ type: "float", nullable: true })
   estimate?: number;
@@ -23,8 +34,8 @@ export class Task {
   @ManyToOne(() => Task, (task) => task.subtasks, { nullable: true })
   parentTask?: Task;
 
-  @OneToMany(() => Task, (task) => task.parentTask)
-  subtasks?: Task[];
+  @OneToMany(() => Task, (task) => task.parentTask, { cascade: true })
+  subtasks: Task[] = [];
 
   @CreateDateColumn()
   createdAt!: Date;
