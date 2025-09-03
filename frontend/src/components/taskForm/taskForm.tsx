@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styles from "./taskForm.module.css";
 
 export type Priority = "Low" | "Medium" | "High" | "Urgent";
 export type Status = "Backlog" | "Unstarted" | "Started" | "Completed" | "Canceled";
@@ -24,15 +25,21 @@ export default function TaskForm({ onSubmit }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className={styles.formContainer} onSubmit={handleSubmit}>
       <input
+        className={styles.input}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Task title"
         required
       />
 
-      <select value={status} onChange={(e) => setStatus(e.target.value as Status)} required>
+      <select
+        className={styles.select}
+        value={status}
+        onChange={(e) => setStatus(e.target.value as Status)}
+        required
+      >
         <option value="Backlog">Backlog</option>
         <option value="Unstarted">Unstarted</option>
         <option value="Started">Started</option>
@@ -40,7 +47,12 @@ export default function TaskForm({ onSubmit }: Props) {
         <option value="Canceled">Canceled</option>
       </select>
 
-      <select value={priority} onChange={(e) => setPriority(e.target.value as Priority)} required>
+      <select
+        className={styles.select}
+        value={priority}
+        onChange={(e) => setPriority(e.target.value as Priority)}
+        required
+      >
         <option value="Low">Low</option>
         <option value="Medium">Medium</option>
         <option value="High">High</option>
@@ -49,6 +61,7 @@ export default function TaskForm({ onSubmit }: Props) {
 
       <input
         type="number"
+        className={styles.input}
         value={estimate}
         onChange={(e) => setEstimate(Number(e.target.value))}
         min={0}
@@ -56,7 +69,7 @@ export default function TaskForm({ onSubmit }: Props) {
         required
       />
 
-      <button type="submit">Add Task</button>
+      <button type="submit" className={styles.button}>Add Task</button>
     </form>
   );
 }
