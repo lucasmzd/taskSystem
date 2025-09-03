@@ -19,19 +19,20 @@ export default function TaskDetails() {
   const [subPriority, setSubPriority] = useState<string>("Low");
   const [subEstimate, setSubEstimate] = useState<number>(0);
 
+  const loadTask = async (taskId: string) => {
+    setLoading(true);
+    const data = await fetchTaskById(taskId);
+    setTask(data);
+    setStatus(data.status);
+    setPriority(data.priority);
+    setEstimate(data.estimate);
+    setDescription(data.description || "");
+    setLoading(false);
+  };
+
   useEffect(() => {
     if (id) {
-      const loadTask = async () => {
-        setLoading(true);
-        const data = await fetchTaskById(id as string);
-        setTask(data);
-        setStatus(data.status);
-        setPriority(data.priority);
-        setEstimate(data.estimate);
-        setDescription(data.description || "");
-        setLoading(false);
-      };
-      loadTask();
+      loadTask(id as string);
     }
   }, [id]);
 
@@ -39,13 +40,8 @@ export default function TaskDetails() {
   if (!task) return <p>Task not found</p>;
 
   const handleUpdate = async () => {
-    const updatedTask = await updateTask(task.id, {
-      status,
-      priority,
-      estimate,
-      description,
-    });
-    setTask(updatedTask);
+    await updateTask(task.id, { status, priority, estimate, description });
+    await loadTask(task.id);
   };
 
   const handleDelete = async () => {
@@ -55,23 +51,50 @@ export default function TaskDetails() {
 
   const handleAddSubtask = async () => {
     if (!subTitle.trim()) return;
-    const newSubtask = await createTask({
+    await createTask({
       title: subTitle,
       status: subStatus,
       priority: subPriority,
       estimate: subEstimate,
       parentTask: { id: task.id },
     });
-
-    setTask((prev: any) => ({
-      ...prev,
-      subtasks: [...(prev.subtasks || []), newSubtask],
-    }));
+    await loadTask(task.id);
     setSubTitle("");
     setSubStatus("Backlog");
     setSubPriority("Low");
     setSubEstimate(0);
   };
+
+  const handleUpdateSubtask = async (subId: string, updatedFields: any) => {
+    await updateTask(subId, updatedFields);
+    await loadTask(task.id);
+  };
+
+  const handleDeleteSubtask = async (subId: string) => {
+    await deleteTask(subId);
+    await loadTask(task.id);
+  };
+
+  const calculateEstimates = (subtasks: any[]) => {
+    let pending = 0;
+    let inProgress = 0;
+    let overall = 0;
+
+    const traverse = (subs: any[]) => {
+      subs.forEach((s: any) => {
+        const est = s.estimate || 0;
+        overall += est;
+        if (s.status === "Backlog" || s.status === "Unstarted") pending += est;
+        if (s.status === "Started") inProgress += est;
+        if (s.subtasks && s.subtasks.length > 0) traverse(s.subtasks);
+      });
+    };
+
+    traverse(subtasks);
+    return { pending, inProgress, overall };
+  };
+
+  const { pending, inProgress, overall } = calculateEstimates(task.subtasks || []);
 
   return (
     <div>
@@ -127,11 +150,48 @@ export default function TaskDetails() {
           <h2>Subtasks</h2>
           <ul>
             {task.subtasks.map((sub: any) => (
-              <li key={sub.id}>
-                {sub.title} - Status: {sub.status} - Priority: {sub.priority} - Estimate: {sub.estimate}
+              <li key={sub.id} style={{ marginBottom: "5px" }}>
+                <strong>{sub.title}</strong>
+                <div>
+                  <label>Status: </label>
+                  <select
+                    value={sub.status}
+                    onChange={(e) => handleUpdateSubtask(sub.id, { status: e.target.value })}
+                  >
+                    <option value="Backlog">Backlog</option>
+                    <option value="Unstarted">Unstarted</option>
+                    <option value="Started">Started</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Canceled">Canceled</option>
+                  </select>
+                  <label>Estimate: </label>
+                  <input
+                    type="number"
+                    value={sub.estimate}
+                    min={0}
+                    onChange={(e) => handleUpdateSubtask(sub.id, { estimate: Number(e.target.value) })}
+                  />
+                  <button onClick={() => handleDeleteSubtask(sub.id)}>Delete</button>
+                </div>
+
+                {sub.subtasks && sub.subtasks.length > 0 && (
+                  <ul style={{ marginLeft: "20px" }}>
+                    {sub.subtasks.map((nested: any) => (
+                      <li key={nested.id}>
+                        {nested.title} - Status: {nested.status} - Priority: {nested.priority} - Estimate: {nested.estimate}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </li>
             ))}
           </ul>
+          <div style={{ marginTop: "15px" }}>
+            <h3>Estimates Summary</h3>
+            <p><strong>Pending Total:</strong> {pending}</p>
+            <p><strong>In Progress Total:</strong> {inProgress}</p>
+            <p><strong>Overall Total:</strong> {overall}</p>
+          </div>
         </div>
       )}
 
