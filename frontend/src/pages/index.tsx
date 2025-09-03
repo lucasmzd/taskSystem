@@ -43,7 +43,7 @@ export default function Home() {
             onClick={() => setShowForm((prev) => !prev)}
             className={styles.createButton}
           >
-            +<span style={{ marginLeft: 8 }}>Create</span>
+            +<span style={{ marginLeft: 8 }}>Create New Task</span>
           </button>
           {showForm && <TaskForm onSubmit={handleCreate} />}
         </aside>

@@ -40,3 +40,19 @@ a {
     color-scheme: dark;
   }
 }
+
+input,
+select,
+textarea {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #ddd;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background-color: #ffffff;
+  outline: none;
+  border-color: #3172d5;
+}
