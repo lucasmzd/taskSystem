@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { fetchTaskById, updateTask, deleteTask } from "../../services/tasks";
+import { fetchTaskById, updateTask, deleteTask, createTask } from "../../services/tasks";
 
 export default function TaskDetails() {
   const router = useRouter();
@@ -13,6 +13,11 @@ export default function TaskDetails() {
   const [priority, setPriority] = useState<string>("");
   const [estimate, setEstimate] = useState<number>(0);
   const [description, setDescription] = useState<string>("");
+
+  const [subTitle, setSubTitle] = useState<string>("");
+  const [subStatus, setSubStatus] = useState<string>("Backlog");
+  const [subPriority, setSubPriority] = useState<string>("Low");
+  const [subEstimate, setSubEstimate] = useState<number>(0);
 
   useEffect(() => {
     if (id) {
@@ -46,6 +51,26 @@ export default function TaskDetails() {
   const handleDelete = async () => {
     await deleteTask(task.id);
     router.push("/");
+  };
+
+  const handleAddSubtask = async () => {
+    if (!subTitle.trim()) return;
+    const newSubtask = await createTask({
+      title: subTitle,
+      status: subStatus,
+      priority: subPriority,
+      estimate: subEstimate,
+      parentTask: { id: task.id },
+    });
+
+    setTask((prev: any) => ({
+      ...prev,
+      subtasks: [...(prev.subtasks || []), newSubtask],
+    }));
+    setSubTitle("");
+    setSubStatus("Backlog");
+    setSubPriority("Low");
+    setSubEstimate(0);
   };
 
   return (
@@ -109,6 +134,38 @@ export default function TaskDetails() {
           </ul>
         </div>
       )}
+
+      <div style={{ marginTop: "20px" }}>
+        <h3>Add Subtask</h3>
+        <input
+          type="text"
+          value={subTitle}
+          onChange={(e) => setSubTitle(e.target.value)}
+          placeholder="Subtask title"
+          required
+        />
+        <select value={subStatus} onChange={(e) => setSubStatus(e.target.value)}>
+          <option value="Backlog">Backlog</option>
+          <option value="Unstarted">Unstarted</option>
+          <option value="Started">Started</option>
+          <option value="Completed">Completed</option>
+          <option value="Canceled">Canceled</option>
+        </select>
+        <select value={subPriority} onChange={(e) => setSubPriority(e.target.value)}>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Urgent">Urgent</option>
+        </select>
+        <input
+          type="number"
+          value={subEstimate}
+          onChange={(e) => setSubEstimate(Number(e.target.value))}
+          min={0}
+          placeholder="Estimate"
+        />
+        <button onClick={handleAddSubtask}>Add Subtask</button>
+      </div>
     </div>
   );
 }
